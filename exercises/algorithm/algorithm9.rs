@@ -1,13 +1,12 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
 
-pub struct Heap<T>
+pub struct Heap<T: Copy>
 where
     T: Default,
 {
@@ -16,7 +15,7 @@ where
     comparator: fn(&T, &T) -> bool,
 }
 
-impl<T> Heap<T>
+impl<T: Copy> Heap<T>
 where
     T: Default,
 {
@@ -38,6 +37,20 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+
+        let mut idx = self.count;
+        while idx > 1 {
+            let parent = self.parent_idx(idx);
+
+            if (self.comparator)(&self.items[parent], &self.items[idx]) {
+                break;
+            }
+
+            (self.items[parent], self.items[idx]) = (self.items[idx], self.items[parent]);
+            idx = parent;
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,11 +71,18 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if !self.children_present(right) || (self.comparator)(&self.items[left], &self.items[right])
+        {
+            left
+        } else {
+            right
+        }
     }
 }
 
-impl<T> Heap<T>
+impl<T: Copy> Heap<T>
 where
     T: Default + Ord,
 {
@@ -77,7 +97,7 @@ where
     }
 }
 
-impl<T> Iterator for Heap<T>
+impl<T: Copy> Iterator for Heap<T>
 where
     T: Default,
 {
@@ -85,7 +105,26 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count == 0 {
+            None
+        } else if self.count == 1 {
+            self.count -= 1;
+            self.items.pop()
+        } else {
+            (self.items[1], self.items[self.count]) = (self.items[self.count], self.items[1]);
+            self.count -= 1;
+            let mut idx = 1;
+            while self.children_present(idx) {
+                let min_idx = self.smallest_child_idx(idx);
+                if (self.comparator)(&self.items[idx], &self.items[min_idx]) {
+                    break;
+                }
+
+                (self.items[idx], self.items[min_idx]) = (self.items[min_idx], self.items[idx]);
+                idx = min_idx;
+            }
+            self.items.pop()
+        }
     }
 }
 
@@ -95,7 +134,7 @@ impl MinHeap {
     #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + Copy,
     {
         Heap::new(|a, b| a < b)
     }
@@ -107,7 +146,7 @@ impl MaxHeap {
     #[allow(clippy::new_ret_no_self)]
     pub fn new<T>() -> Heap<T>
     where
-        T: Default + Ord,
+        T: Default + Ord + Copy,
     {
         Heap::new(|a, b| a > b)
     }
