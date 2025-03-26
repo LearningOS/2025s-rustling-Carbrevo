@@ -42,27 +42,17 @@ impl Default for Person {
 
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
-        if s.len() == 0 {
-            Person::default()
-        } else {
-            let mut fields = s.split(',');
-
-            let name = fields.next().unwrap();
-            if name.len() == 0 {
-                Person::default()
-            } else {
-                if let Some(_) = fields.next() {
-                    let remainder = &s[name.len()+1..];
-                    if let Ok(age) = remainder.parse() {
-                        Person{name: name.to_string(), age}
-                    } else {
-                        Person::default()
-                    }        
-                } else {
+        s.split_once(',')
+            .map_or(Person::default(), |(name, age_str)| {
+                if name == "" {
                     Person::default()
+                } else {
+                    age_str.parse().map_or(Person::default(), |age| Person {
+                        name: name.to_string(),
+                        age,
+                    })
                 }
-            }
-        }
+            })
     }
 }
 
