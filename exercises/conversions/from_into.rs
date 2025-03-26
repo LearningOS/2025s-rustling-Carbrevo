@@ -43,16 +43,14 @@ impl Default for Person {
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
         s.split_once(',')
-            .map_or(Person::default(), |(name, age_str)| {
-                if name == "" {
-                    Person::default()
-                } else {
-                    age_str.parse().map_or(Person::default(), |age| Person {
-                        name: name.to_string(),
-                        age,
-                    })
-                }
+            .filter(|(name, _)| !name.is_empty())
+            .and_then(|(name, age_str)| {
+                age_str.parse().ok().map(|age| Person {
+                    name: name.into(),
+                    age,
+                })
             })
+            .unwrap_or_default()
     }
 }
 
