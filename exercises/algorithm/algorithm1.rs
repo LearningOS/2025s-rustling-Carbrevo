@@ -125,28 +125,20 @@ impl<T: Ord> LinkedList<T> {
 
     pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
         let mut merged;
+        let mut merged_next;
         let mut list_a_rem;
         let mut list_b_rem;
 
         (merged, list_a_rem, list_b_rem) = Self::split(list_a, list_b);
-        while list_a_rem.is_some() || list_b_rem.is_some() {
-            if list_a_rem.is_none() {
-                let list_b = list_b_rem.unwrap();
-                merged += list_b;
-                break;
-            } else if list_b_rem.is_none() {
-                let list_a = list_a_rem.unwrap();
-                merged += list_a;
-                break;
-            }
-
-            let mut merged_next;
-            let list_a = list_a_rem.unwrap();
-            let list_b = list_b_rem.unwrap();
-            (merged_next, list_a_rem, list_b_rem) = Self::split(list_a, list_b);
+        while let (Some(ref list_a), Some(ref list_b)) = (list_a_rem, list_b_rem) {
+            (merged_next, list_a_rem, list_b_rem) = Self::split(*list_a, *list_b);
             merged += merged_next;
         }
 
+        if let Some(list_rem) = list_a_rem.xor(list_b_rem) {
+            merged += list_rem;
+        }
+    
         merged
     }
 }
